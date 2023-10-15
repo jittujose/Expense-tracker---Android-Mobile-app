@@ -1,9 +1,7 @@
 package com.example.expensetracker_assignment1
 
-import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
-import android.provider.CalendarContract
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -13,30 +11,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Center
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.End
-import androidx.compose.ui.BiasAbsoluteAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import java.text.DateFormat
 import java.time.LocalDate
-import java.util.Calendar
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -83,10 +71,19 @@ class MainActivity : ComponentActivity() {
                         Text(text = "Edit Budget")
 
                 }
-                if (expense_date.value.month == LocalDate.now().month )
-                FloatingActionButton(onClick = { /*TODO*/ },Modifier.align(End).padding(end = 20.dp, top = 10.dp)) {
-                    Icon(Icons.Filled.Add,contentDescription = "Add Expense", tint = Color.Red)
+                if (expense_date.value.month == LocalDate.now().month ){
+                    FloatingActionButton(onClick = {  show_Dialog.value = true},
+                        Modifier
+                            .align(End)
+                            .padding(end = 20.dp, top = 10.dp)) {
+                        Icon(Icons.Filled.Add,contentDescription = "Add Expense", tint = Color.Red) }
                 }
+                //composable functions cannot be called from within onClicks from either a button or a modifier.
+                //So we use a flag in side the Floating Button click and let the flag to decide about viewing add item dialogue
+                if (show_Dialog.value){
+                    addListItem {}
+                }
+                expenseList (expense_date) {last_clicked.value = it}
             }
         }
     }
@@ -94,6 +91,7 @@ class MainActivity : ComponentActivity() {
     var expense_date = mutableStateOf(LocalDate.now())
     var total_expense = mutableStateOf(0)
     var balance = mutableStateOf(0)
-    var flag_add = mutableStateOf(true)
+    var last_clicked = mutableStateOf(listItem())
+    var show_Dialog = mutableStateOf(false)
 
 }
