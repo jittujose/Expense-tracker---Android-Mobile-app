@@ -59,28 +59,24 @@ fun expenseList(expense_date: MutableState<LocalDate>, onStateChanged:(listItem)
         }
     }
 }
-//Add new expense
+//Function to add new expense is declared here
 @Composable
 fun addListItem(
-    onDismissRequest: () -> Unit,
+    onDismissRequest: (Boolean) -> Unit,
                 ){
     var _itemName by remember { mutableStateOf("") }
     var _itemAmount by remember { mutableStateOf("") }
-   Dialog(onDismissRequest = { onDismissRequest() }) {
+   Dialog(onDismissRequest = { onDismissRequest(false) }) {
        Column {
-           Row {
-               Text(text = "Enter Item")
-               TextField(value = _itemName, onValueChange ={ _itemName = it })
-           }
-           Row {
-               Text(text = "Enter Amount")
+               TextField(value = _itemName, onValueChange ={ _itemName = it }, label = { Text(text = "Enter Item")})
                TextField(value = _itemAmount,
                    onValueChange = {_itemAmount = it },
-                   keyboardOptions = KeyboardOptions(keyboardType=KeyboardType.Number)
+                   keyboardOptions = KeyboardOptions(keyboardType=KeyboardType.Number),
+                   label = { Text(text = "Enter Amount")}
                )
-           }
+
            Row {
-               Button(onClick = { /*TODO*/ }) {
+               Button(onClick = { onDismissRequest(false) }) {
                    Text(text = "Cancel")
                }
                Button(onClick = {
@@ -91,6 +87,30 @@ fun addListItem(
            }
        }
    }
+
+}
+//Function for edit Budjet
+@Composable
+fun editBudget(dismiss: (Boolean) ->Unit){
+    var _budget by remember { mutableStateOf("") }
+
+    Dialog(onDismissRequest = { dismiss(true) }) {
+        Column {
+            Row {
+                TextField(value = _budget, onValueChange = { _budget = it },
+                    keyboardOptions = KeyboardOptions(keyboardType=KeyboardType.Number),
+                    label = { Text(text = "Enter Budget")})
+            }
+            Row {
+                Button(onClick = { dismiss(true) }) {
+                    Text(text = "Cancel")
+                }
+                Button(onClick = { /*TODO*/ }) {
+                    Text(text = "Ok")
+                }
+            }
+        }
+    }
 
 }
 //itemdate: LocalDate, itemName: String, itemAmount: Int

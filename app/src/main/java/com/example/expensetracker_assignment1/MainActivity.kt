@@ -61,8 +61,8 @@ class MainActivity : ComponentActivity() {
                         Text("Balance", modifier = Modifier, textAlign = TextAlign.Center)
                     }
                 }
-
-                    Button(onClick = {},
+                //Edit budget button is declared here
+                    Button(onClick = {showEdit_Budget.value=true},
                         Modifier
                             .align(End)
                             .padding(end = 20.dp),
@@ -71,8 +71,18 @@ class MainActivity : ComponentActivity() {
                         Text(text = "Edit Budget")
 
                 }
+                //edit budget dialog visibility declared her
+                if (showEdit_Budget.value){
+                    editBudget(){
+                        if (it){
+                            showEdit_Budget.value=false
+                        }
+                    }
+                }
+                //Add expense button is declared here
+                //It will visible only if the month selected is the current month
                 if (expense_date.value.month == LocalDate.now().month ){
-                    FloatingActionButton(onClick = {  show_Dialog.value = true},
+                    FloatingActionButton(onClick = {  showAdd_list.value = true},
                         Modifier
                             .align(End)
                             .padding(end = 20.dp, top = 10.dp)) {
@@ -80,8 +90,11 @@ class MainActivity : ComponentActivity() {
                 }
                 //composable functions cannot be called from within onClicks from either a button or a modifier.
                 //So we use a flag in side the Floating Button click and let the flag to decide about viewing add item dialogue
-                if (show_Dialog.value){
-                    addListItem {}
+                if (showAdd_list.value){
+                    addListItem (){
+                        if (it == false){
+                            showAdd_list.value = false}
+                    }
                 }
                 expenseList (expense_date) {last_clicked.value = it}
             }
@@ -92,6 +105,7 @@ class MainActivity : ComponentActivity() {
     var total_expense = mutableStateOf(0)
     var balance = mutableStateOf(0)
     var last_clicked = mutableStateOf(listItem())
-    var show_Dialog = mutableStateOf(false)
+    var showAdd_list = mutableStateOf(false)
+    var showEdit_Budget = mutableStateOf(false)
 
 }
