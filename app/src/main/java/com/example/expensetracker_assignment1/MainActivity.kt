@@ -18,13 +18,18 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Year
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -39,9 +44,24 @@ class MainActivity : ComponentActivity() {
                         .background(Color.LightGray),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Button(onClick = { }, modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)) {
-                        Text("${expense_date.value.month}")
+                    //Button for selecting date to display monthly expense
+                    Button(onClick = { showMonth_Calendar.value = true}, modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+                        Text("${expense_year.value}  ${expense_month.value}")
                     }
+                    //Calendar visibility decision is here
+                    if (showMonth_Calendar.value){
+                        monthSelector(
+                            expense_year.value,expense_month.value){ a, b, c ->
+                            if (a) {
+                                expense_year.value = b
+                                expense_month.value = c
+                                 showMonth_Calendar.value=false
+
+                            }
+
+                        }
+                    }
+
                 }
                 Row (
                     modifier = Modifier
@@ -81,7 +101,7 @@ class MainActivity : ComponentActivity() {
                 }
                 //Add expense button is declared here
                 //It will visible only if the month selected is the current month
-                if (expense_date.value.month == LocalDate.now().month ){
+                if (expense_month.value == LocalDate.now().month.toString() && expense_year.value ==LocalDate.now().year  ){
                     FloatingActionButton(onClick = {  showAdd_list.value = true},
                         Modifier
                             .align(End)
@@ -96,16 +116,21 @@ class MainActivity : ComponentActivity() {
                             showAdd_list.value = false}
                     }
                 }
-                expenseList (expense_date) {last_clicked.value = it}
+                expenseList (current_date) {last_clicked.value = it}
             }
         }
     }
     @RequiresApi(Build.VERSION_CODES.O)
-    var expense_date = mutableStateOf(LocalDate.now())
+    var current_date = mutableStateOf(LocalDate.now())
+    @RequiresApi(Build.VERSION_CODES.O)
+    var expense_year = mutableStateOf( LocalDate.now().year.toInt())
+    @RequiresApi(Build.VERSION_CODES.O)
+    var expense_month = mutableStateOf(LocalDate.now().month.toString())
+
     var total_expense = mutableStateOf(0)
     var balance = mutableStateOf(0)
     var last_clicked = mutableStateOf(listItem())
-    var showAdd_list = mutableStateOf(false)
-    var showEdit_Budget = mutableStateOf(false)
-
+    var showAdd_list = mutableStateOf(false) // boolean variable to display add list dialog
+    var showEdit_Budget = mutableStateOf(false) // boolean variable to display edit budget dialog
+    var showMonth_Calendar = mutableStateOf(false) //boolean variable to display calendar view
 }
