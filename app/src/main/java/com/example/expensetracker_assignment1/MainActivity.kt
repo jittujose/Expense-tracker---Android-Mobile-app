@@ -23,6 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
@@ -109,7 +110,7 @@ class MainActivity : ComponentActivity() {
                 }
                 //edit budget dialog visibility declared her
                 if (showEdit_Budget.value){
-                    editBudget(){
+                    editBudget(expense_month.value,budget.value){
                         if (it){
                             showEdit_Budget.value=false
                         }
@@ -134,7 +135,23 @@ class MainActivity : ComponentActivity() {
                 }
                 arraylist = retrieveData()
                 if(arraylist.isNotEmpty()){
-                verticalList(items = arraylist, onItemClick = {it}) }
+                verticalList(items = arraylist,expense_month.value,expense_year.value,onItemClick = {item ->
+                    selectedListItem.value=item
+                    showEditListItem.value=true
+
+                }){
+                    a,b->
+                    total_expense.value = a
+                    budget.value= b
+                    balance.value=budget.value - total_expense.value
+                } }
+                if (showEditListItem.value){
+                    editListItem(
+                        itemID = selectedListItem.value.itemID!!.toInt(),
+                        currentItemName = selectedListItem.value.itemName!!.toString(),
+                        currentItemAmount =selectedListItem.value.amount!!.toInt() ,
+
+                        ){showEditListItem.value=it}}
             }
 
 
@@ -172,12 +189,19 @@ class MainActivity : ComponentActivity() {
     var expense_day = mutableStateOf(LocalDate.now().dayOfMonth.toInt())
     var budget = mutableStateOf(0)
 
+    // Initialize a mutable state variable with a default instance of ListItems
+    var initialListItems = ListItems()
+
+    // Create a mutable state with the initial value
+    var selectedListItem: MutableState<ListItems> = mutableStateOf(initialListItems)
+
     var total_expense = mutableStateOf(0)
     var balance = mutableStateOf(0)
     //var last_clicked = mutableStateOf(listItem())
     var showAdd_list = mutableStateOf(false) // boolean variable to display add list dialog
     var showEdit_Budget = mutableStateOf(false) // boolean variable to display edit budget dialog
     var showMonth_Calendar = mutableStateOf(false) //boolean variable to display calendar view
+    var showEditListItem = mutableStateOf(false)
 
 
 
@@ -202,18 +226,45 @@ class MainActivity : ComponentActivity() {
 
 }
 
-// function that will update some data in our database
- fun updateData(newitemAmount:Int,olditemAmount:Int) {
+// function that will update list item amount in our database
+ fun updateItemData(itemID:Int,newItemName:String,oldItemName:String,newitemAmount:Int,olditemAmount:Int) {
     val row: ContentValues = ContentValues().apply {
-        put("ITEM_AMOUNT", newitemAmount)
+        put("ITEM_NAME", newItemName)
+        put("AMOUNT", newitemAmount.toString())
     }
     //generate a query to pick out the rows with jim as the first name so we can change it to jacob
     var table: String = "test"
-    var where: String = "ITEM_AMOUNT = ?"
-    var where_args: Array<String> = arrayOf(olditemAmount.toString())
+    var where: String = "ID = ?"
+    var where_args: Array<String> = arrayOf(itemID.toString())
+    sdb.update(table, row, where, where_args)
+}
+//function that will update budget in database
+fun updateBudget(newBudget:Int,oldBudget:Int,month:String) {
+    val row: ContentValues = ContentValues().apply {
+        put("BUDGET", newBudget.toString())
+    }
+    //generate a query to pick out the rows with month
+    var table: String = "test"
+    var where: String = "MONTH = ?"
+    var where_args:Array<String> = arrayOf(month)
     sdb.update(table, row, where, where_args)
 }
 
+//function to delete row from database table test
+fun deleteItemByID(itemId: Int) {
+
+
+    // Define the table and the condition for deletion
+    val table = "test"
+    val whereClause = "ID = ?"
+    val whereArgs = arrayOf(itemId.toString())
+
+    // Execute the DELETE statement
+    sdb.delete(table, whereClause, whereArgs)
+
+    // Close the database
+   // sdb.close()
+}
 //private function that will retrieve the full data from our database and return it as a string
 fun retrieveData(): MutableList<ListItems> {
     // the name of the table we are going to query

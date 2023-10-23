@@ -5,6 +5,7 @@ package com.example.expensetracker_assignment1
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,27 +30,38 @@ import androidx.compose.ui.window.Dialog
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
-fun verticalList(items: List<ListItems>, onItemClick: (ListItems) -> Unit) {
+fun verticalList(items: List<ListItems>,month: String,year: Int, onItemClick: (ListItems) -> Unit,totalandbudjet:(Int,Int)->Unit) {
     LazyColumn {
         if (items.isNotEmpty()){
+            var totalAmount =0
+            var budgetAmount = 0
             for (i in items) {
-                item {
-                    ListItem(
-                        headlineText = {
-                            Text(text = i.itemName ?: "No item name")
-                        },
-                        supportingText = {
-                            Text(text = i.day?.toString() ?: "No day")
-                        },
-                        trailingContent = {
-                            Text(text = i.amount?.toString() ?: "No Amount")
-                        }
-//                modifier = Modifier.clickable {
-//                    onItemClick(i)
-//                }
-                    )
-                }
+                if (i.month == month && i.year==year){
+                    totalAmount += (i.amount ?: 0).toInt()
+                    budgetAmount = (i.budget ?: 0).toInt()
+                    item {
+                        ListItem(
+                            modifier = Modifier.clickable {
+                                // Call the onItemClick callback when the item is clicked
+                                onItemClick(i)
+                            },
+                            headlineText = {
+                                Text(text = i.itemName ?: "No item name")
+                            },
+                            supportingText = {
+                                Text(text = i.day?.toString() ?: "No day")
+                            },
+                            trailingContent = {
+                                Text(text = i.amount?.toString() ?: "No Amount")
+                            }
+
+
+
+                        )
+                    }
             }
+            }
+            totalandbudjet(totalAmount,budgetAmount)
         }
     }
 }
@@ -118,8 +130,8 @@ fun addListItem(expense_year:Int,expense_month:String,expense_day:Int,budget:Int
 }
 //Function for edit Budjet
 @Composable
-fun editBudget(dismiss: (Boolean) ->Unit){
-    var _budget by remember { mutableStateOf("") }
+fun editBudget(month: String,currentBudget:Int,dismiss: (Boolean) ->Unit){
+    var _budget by remember { mutableStateOf("${currentBudget}") }
 
     Dialog(onDismissRequest = { dismiss(true) }) {
         Column {
@@ -132,7 +144,10 @@ fun editBudget(dismiss: (Boolean) ->Unit){
                 Button(onClick = { dismiss(true) }) {
                     Text(text = "Cancel")
                 }
-                Button(onClick = { /*TODO*/ }) {
+                Button(onClick = {
+                    updateBudget(_budget.toInt(),currentBudget,month)
+                    dismiss(true)
+                }) {
                     Text(text = "Ok")
                 }
             }
@@ -187,5 +202,45 @@ fun monthSelector(_year: Int, _month:String,dismiss: (bool:Boolean,year:Int,mont
     }
 }
 
+//function to edit list item
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun editListItem(itemID:Int,currentItemName:String,currentItemAmount: Int,
+                onDismissRequest: (Boolean) -> Unit,
+){
+    var _itemName by remember { mutableStateOf("$currentItemName") }
+    var _itemAmount by remember { mutableStateOf("$currentItemAmount") }
+    Dialog(onDismissRequest = { onDismissRequest(false) }) {
+        Column {
+            TextField(value = _itemName, onValueChange ={ _itemName = it }, label = { Text(text = "Enter Item")})
+            TextField(value = _itemAmount,
+                onValueChange = {_itemAmount = it },
+                keyboardOptions = KeyboardOptions(keyboardType=KeyboardType.Number),
+                label = { Text(text = "Enter Amount")}
+            )
 
+            Row {
+                Button(onClick = {
+                    deleteItemByID(itemID)
+                    onDismissRequest(false)
+
+                }) {
+                    Text(text = "Delete")
+                }
+                Button(onClick = { onDismissRequest(false)
+
+                }) {
+                    Text(text = "Cancel")
+                }
+                Button(onClick = {
+                    updateItemData(itemID,_itemName,currentItemName,_itemAmount.toInt(),currentItemAmount)
+                    onDismissRequest(false)
+                }) {
+                    Text(text = "Ok")
+                }
+            }
+        }
+    }
+
+}
 
