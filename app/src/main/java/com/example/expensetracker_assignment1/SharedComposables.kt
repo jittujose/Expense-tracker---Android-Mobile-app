@@ -3,10 +3,8 @@
 package com.example.expensetracker_assignment1
 
 import android.os.Build
-import android.widget.CalendarView
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,29 +17,44 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.Month
-import java.time.Year
-import java.time.ZoneOffset
 
-class listItem{
-    @RequiresApi(Build.VERSION_CODES.O)
-    var itemdate: LocalDate? = null
-    var itemName: String? = null
-    var itemAmount: Int? = null
 
+@ExperimentalFoundationApi
+@ExperimentalMaterial3Api
+@Composable
+fun verticalList(items: List<ListItems>, onItemClick: (ListItems) -> Unit) {
+    LazyColumn {
+        if (items.isNotEmpty()){
+            for (i in items) {
+                item {
+                    ListItem(
+                        headlineText = {
+                            Text(text = i.itemName ?: "No item name")
+                        },
+                        supportingText = {
+                            Text(text = i.day?.toString() ?: "No day")
+                        },
+                        trailingContent = {
+                            Text(text = i.amount?.toString() ?: "No Amount")
+                        }
+//                modifier = Modifier.clickable {
+//                    onItemClick(i)
+//                }
+                    )
+                }
+            }
+        }
+    }
 }
-var arrayList= arrayOf<listItem>()
+
+/*
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -67,9 +80,12 @@ fun expenseList(expense_date: MutableState<LocalDate>, onStateChanged:(listItem)
         }
     }
 }
+
+ */
 //Function to add new expense is declared here
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun addListItem(
+fun addListItem(expense_year:Int,expense_month:String,expense_day:Int,budget:Int,
     onDismissRequest: (Boolean) -> Unit,
                 ){
     var _itemName by remember { mutableStateOf("") }
@@ -84,11 +100,14 @@ fun addListItem(
                )
 
            Row {
-               Button(onClick = { onDismissRequest(false) }) {
+               Button(onClick = { onDismissRequest(false)
+
+               }) {
                    Text(text = "Cancel")
                }
                Button(onClick = {
-
+                   addData(ITEM_NAME = _itemName,expense_year.toString(),expense_month,expense_day.toString(),_itemAmount.toString(),budget.toString())
+                   onDismissRequest(false)
                }) {
                    Text(text = "Add")
                }
@@ -167,4 +186,6 @@ fun monthSelector(_year: Int, _month:String,dismiss: (bool:Boolean,year:Int,mont
         }
     }
 }
-//itemdate: LocalDate, itemName: String, itemAmount: Int
+
+
+
