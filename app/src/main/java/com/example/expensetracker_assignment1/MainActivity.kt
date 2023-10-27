@@ -1,12 +1,15 @@
 package com.example.expensetracker_assignment1
 
 import android.content.ContentValues
+import android.content.Intent
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -32,14 +35,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 
+
 class ListItems{
     var itemID: Int? =null
     var itemName: String? = null
     var year: Int? = null
     var month: String? = null
     var day: Int? = null
-    var amount: Int? =null
-    var budget: Int?=null
+    var amount: Float? =null
+    var budget: Float?=null
 
 }
 class MainActivity : ComponentActivity() {
@@ -49,10 +53,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         var arraylist: MutableList<ListItems> = ArrayList()
+
         //get a writable connection to the database
         tdb = ExptrackerDBOpenHelper(this, "test.db", null, 1)
         sdb = tdb.writableDatabase
         setContent {
+            var launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){
+                third_year.value=it.data?.getStringExtra("year").toString()
+                third_month.value=it.data?.getStringExtra("month").toString()
+                expense_year.value=third_year.value.toInt()
+                expense_month.value=third_month.value
+            }
             Column {
                 Row(
                     modifier = Modifier
@@ -62,23 +73,12 @@ class MainActivity : ComponentActivity() {
                     horizontalArrangement = Arrangement.Center
                 ) {
                     //Button for selecting date to display monthly expense
-                    Button(onClick = { showMonth_Calendar.value = true}, modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+                    Button(onClick = {
+                        launcher.launch(createIntentThirdActivity())
+
+                                     }, modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)) {
                         Text("${expense_year.value}  ${expense_month.value}")
                     }
-                    //Calendar visibility decision is here
-                    if (showMonth_Calendar.value){
-                        monthSelector(
-                            expense_year.value,expense_month.value){ a, b, c ->
-                            if (a) {
-                                expense_year.value = b
-                                expense_month.value = c
-                                 showMonth_Calendar.value=false
-
-                            }
-
-                        }
-                    }
-
                 }
                 Row (
                     modifier = Modifier
@@ -89,12 +89,12 @@ class MainActivity : ComponentActivity() {
 
                 ){
                     Column( verticalArrangement = Arrangement.SpaceEvenly) {
-                        Text("${total_expense.value}", modifier = Modifier,Color.Red,textAlign = TextAlign.Center)
+                        Text("\u20AC ${String.format("%.2f",total_expense.value)}", modifier = Modifier,Color.Red,textAlign = TextAlign.Center)
                         Text("Total Expense",textAlign = TextAlign.Center)
                     }
 
                     Column (verticalArrangement = Arrangement.SpaceEvenly){
-                        Text("${balance.value}", modifier = Modifier, Color.Blue,textAlign = TextAlign.Center)
+                        Text("\u20AC ${String.format("%.2f",balance.value)}", modifier = Modifier, Color.Blue,textAlign = TextAlign.Center)
                         Text("Balance", modifier = Modifier, textAlign = TextAlign.Center)
                     }
                 }
@@ -117,14 +117,14 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 //Add expense button is declared here
-                //It will visible only if the month selected is the current month
-                if (expense_month.value == LocalDate.now().month.toString() && expense_year.value ==LocalDate.now().year  ){
+                
+
                     FloatingActionButton(onClick = {  showAdd_list.value = true},
                         Modifier
                             .align(End)
                             .padding(end = 20.dp, top = 10.dp)) {
                         Icon(Icons.Filled.Add,contentDescription = "Add Expense", tint = Color.Red) }
-                }
+
                 //composable functions cannot be called from within onClicks from either a button or a modifier.
                 //So we use a flag in side the Floating Button click and let the flag to decide about viewing add item dialogue
                 if (showAdd_list.value){
@@ -140,54 +140,74 @@ class MainActivity : ComponentActivity() {
                     showEditListItem.value=true
 
                 }){
-                    a,b->
+                    a,b,c->
                     total_expense.value = a
                     budget.value= b
                     balance.value=budget.value - total_expense.value
+                    listempty.value=c
                 } }
                 if (showEditListItem.value){
                     editListItem(
                         itemID = selectedListItem.value.itemID!!.toInt(),
                         currentItemName = selectedListItem.value.itemName!!.toString(),
-                        currentItemAmount =selectedListItem.value.amount!!.toInt() ,
+                        currentItemAmount =selectedListItem.value.amount!!.toFloat() ,
 
                         ){showEditListItem.value=it}}
+                //Checking list is empty or not.
+                if (listempty.value){
+                    Text(text = "No expense in this month. Press + button to add new expense")
+                }
             }
 
 
         }
+
+
     }
 
-    //override onResume function which we will use to retrieve data and update the displayed string
-    override fun onResume() {
-        super.onResume()
-
-//        var arraylist: MutableList<ListItems> = ArrayList()
-//        arraylist = retrieveData()
-        // current_data.value = retrieveData()
-    }
-
-    //overridden onStop function which we will use to add and update data in the database
-    override fun onStop() {
-        super.onStop()
-
-//        addData("Ufdgd","2022","JHF","22","25","300")
-//        addData("UHfbd","2022","JHF","22","25","300")
-//        addData("llkl","2022","JHF","22","25","300")
-//        addData("UHfbd","2022","JHF","22","25","300")
-        //updateData(15,20)
-    }
+//    //function that will create an activity
+//    //Here launch an activity to select or create sheet for selected month and year
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    fun createIntentAcivity(): Intent {
+//        //create the intent activity
+//        val intent = Intent(this,AnotherActivity::class.java)
+//        intent.putExtra("year",expense_year.value)
+//        intent.putExtra("month",expense_month.value)
+//        startActivity(intent)
+//        //return intent to the caller
+//        return  intent
+//    }
+//    var flagActivity = mutableStateOf(false)
+//    var activity_return = mutableStateOf("no data returned yet")
+//Intent activity for selecting month and year
+@RequiresApi(Build.VERSION_CODES.O)
+fun createIntentThirdActivity():Intent {
+    var intent:Intent = Intent(this,ThirdActivity::class.java)
+    return intent
+}
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    var current_date = mutableStateOf(LocalDate.now())
+    var third_year = mutableStateOf(LocalDate.now().year.toString())//Used for returned year from ThirdActivity
+    @RequiresApi(Build.VERSION_CODES.O)
+    var third_month = mutableStateOf(LocalDate.now().month.toString())//Used for returned month from ThirdActivity
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     var expense_year = mutableStateOf( LocalDate.now().year.toInt())
+    //Integer variable used to store selected year for the list and initialised to current year
     @RequiresApi(Build.VERSION_CODES.O)
     var expense_month = mutableStateOf(LocalDate.now().month.toString())
+    //String variable used to store selected month for the list and initialised to current month
     @RequiresApi(Build.VERSION_CODES.O)
     var expense_day = mutableStateOf(LocalDate.now().dayOfMonth.toInt())
-    var budget = mutableStateOf(0)
+    //Integer variable used to store current day for the list
+    var budget = mutableStateOf(0f)
+    //Floating point variable used to store budget of the selected month
+    var total_expense = mutableStateOf(0f)
+    //floating point variable used to store total expense of selected month
+    var balance = mutableStateOf(0f)
+    //floating point variable used to store balance amount of selected month
 
     // Initialize a mutable state variable with a default instance of ListItems
     var initialListItems = ListItems()
@@ -195,22 +215,22 @@ class MainActivity : ComponentActivity() {
     // Create a mutable state with the initial value
     var selectedListItem: MutableState<ListItems> = mutableStateOf(initialListItems)
 
-    var total_expense = mutableStateOf(0)
-    var balance = mutableStateOf(0)
-    //var last_clicked = mutableStateOf(listItem())
+
+
     var showAdd_list = mutableStateOf(false) // boolean variable to display add list dialog
     var showEdit_Budget = mutableStateOf(false) // boolean variable to display edit budget dialog
-    var showMonth_Calendar = mutableStateOf(false) //boolean variable to display calendar view
-    var showEditListItem = mutableStateOf(false)
-
+    var showMonth_Calendar = mutableStateOf(false) //boolean variable to display dialog to select year and month
+    var showEditListItem = mutableStateOf(false) //boolean variable used to display dialog to edit List Item
+    var listempty = mutableStateOf(false)// boolean for checking list is empty or not
 
 
 }
 
-//      database operations
-// function that will add some data to our database
+//                     database operations
+
+// function that will add new item data to our database
  fun addData(ITEM_NAME: String,YEAR:String,MONTH:String,DAY:String,AMOUNT:String,BUDGET:String) {
-    //we will add in three rows of data to the database using the content values objects
+    //we will add in one row of data to the database using the content values objects
     val row1: ContentValues = ContentValues().apply {
         put("ITEM_NAME", ITEM_NAME)
         put("YEAR", YEAR)
@@ -221,13 +241,13 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    //add all three rows to the database
+    //add our row to the database
     sdb.insert("test", null, row1)
 
 }
 
-// function that will update list item amount in our database
- fun updateItemData(itemID:Int,newItemName:String,oldItemName:String,newitemAmount:Int,olditemAmount:Int) {
+// function that will update list item amount and item name in our database
+ fun updateItemData(itemID:Int,newItemName:String,oldItemName:String,newitemAmount:Float,olditemAmount:Float) {
     val row: ContentValues = ContentValues().apply {
         put("ITEM_NAME", newItemName)
         put("AMOUNT", newitemAmount.toString())
@@ -238,8 +258,8 @@ class MainActivity : ComponentActivity() {
     var where_args: Array<String> = arrayOf(itemID.toString())
     sdb.update(table, row, where, where_args)
 }
-//function that will update budget in database
-fun updateBudget(newBudget:Int,oldBudget:Int,month:String) {
+//function that will update budget in database for selected month
+fun updateBudget(newBudget:Float,oldBudget:Float,month:String) {
     val row: ContentValues = ContentValues().apply {
         put("BUDGET", newBudget.toString())
     }
@@ -262,8 +282,7 @@ fun deleteItemByID(itemId: Int) {
     // Execute the DELETE statement
     sdb.delete(table, whereClause, whereArgs)
 
-    // Close the database
-   // sdb.close()
+
 }
 //private function that will retrieve the full data from our database and return it as a string
 fun retrieveData(): MutableList<ListItems> {
@@ -306,8 +325,8 @@ fun retrieveData(): MutableList<ListItems> {
         list.month=c.getString(3).toString()
 
         list.day=c.getString(4).toInt()
-        list.amount=c.getString(5).toInt()
-        list.budget=c.getString(6).toInt()
+        list.amount=c.getString(5).toFloat()
+        list.budget=c.getString(6).toFloat()
         arraylist.add(list)
 
     }

@@ -3,11 +3,14 @@
 package com.example.expensetracker_assignment1
 
 import android.os.Build
+import android.widget.CalendarView
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -22,23 +25,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.ZoneOffset
+import java.util.Calendar
 
 
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
-fun verticalList(items: List<ListItems>,month: String,year: Int, onItemClick: (ListItems) -> Unit,totalandbudjet:(Int,Int)->Unit) {
+fun verticalList(items: List<ListItems>,month: String,year: Int, onItemClick: (ListItems) -> Unit,totalandbudjet:(Float,Float,Boolean)->Unit) {
     LazyColumn {
         if (items.isNotEmpty()){
-            var totalAmount =0
-            var budgetAmount = 0
+            var totalAmount =0f
+            var budgetAmount = 0f
+            var isempty = true
             for (i in items) {
                 if (i.month == month && i.year==year){
-                    totalAmount += (i.amount ?: 0).toInt()
-                    budgetAmount = (i.budget ?: 0).toInt()
+                    totalAmount += (i.amount ?: 0f).toFloat()
+                    budgetAmount = (i.budget ?: 0f).toFloat()
+                    isempty = false
                     item {
                         ListItem(
                             modifier = Modifier.clickable {
@@ -49,55 +61,38 @@ fun verticalList(items: List<ListItems>,month: String,year: Int, onItemClick: (L
                                 Text(text = i.itemName ?: "No item name")
                             },
                             supportingText = {
-                                Text(text = i.day?.toString() ?: "No day")
+                                Row {
+                                    Text(text = "Day: ")
+                                    Text(text = i.day?.toString() ?: "No day")
+                                }
+                                
                             },
                             trailingContent = {
-                                Text(text = i.amount?.toString() ?: "No Amount")
+                                Row {
+                                    Text(text = "\u20AC")
+                                    Text(text = i.amount?.toString() ?: "No Amount")
+                                }
+
                             }
 
 
 
                         )
                     }
+
             }
+
             }
-            totalandbudjet(totalAmount,budgetAmount)
+
+            totalandbudjet(totalAmount,budgetAmount,isempty)
         }
     }
 }
 
-/*
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun expenseList(expense_date: MutableState<LocalDate>, onStateChanged:(listItem)->Unit){
-    if (arrayList.isEmpty()){
-        Text(text = "You don't have any Expense in this month")
-    }else {
-        LazyColumn {
-            for (i in arrayList) {
-                if (expense_date.value.month == i.itemdate?.month) {
-                    item {
-                        ListItem(headlineText = { Text(text = "${i.itemName}") },
-                            leadingContent = { Text(text = "${i.itemdate}") },
-                            trailingContent = { Text(text = "${i.itemAmount}") },
-                            modifier = Modifier.combinedClickable(
-                                onClick = {
-                                    onStateChanged(i)
-                                }
-                            ))
-                    }
-                }
-            }
-        }
-    }
-}
-
- */
 //Function to add new expense is declared here
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun addListItem(expense_year:Int,expense_month:String,expense_day:Int,budget:Int,
+fun addListItem(expense_year:Int,expense_month:String,expense_day:Int,budget:Float,
     onDismissRequest: (Boolean) -> Unit,
                 ){
     var _itemName by remember { mutableStateOf("") }
@@ -118,19 +113,27 @@ fun addListItem(expense_year:Int,expense_month:String,expense_day:Int,budget:Int
                    Text(text = "Cancel")
                }
                Button(onClick = {
+                   if (_itemName.isNotEmpty() && _itemAmount.isNotEmpty()){
                    addData(ITEM_NAME = _itemName,expense_year.toString(),expense_month,expense_day.toString(),_itemAmount.toString(),budget.toString())
-                   onDismissRequest(false)
+                   onDismissRequest(false)}
                }) {
                    Text(text = "Add")
                }
            }
+
+
+
        }
    }
 
 }
+
+
+
+
 //Function for edit Budjet
 @Composable
-fun editBudget(month: String,currentBudget:Int,dismiss: (Boolean) ->Unit){
+fun editBudget(month: String,currentBudget:Float,dismiss: (Boolean) ->Unit){
     var _budget by remember { mutableStateOf("${currentBudget}") }
 
     Dialog(onDismissRequest = { dismiss(true) }) {
@@ -145,7 +148,7 @@ fun editBudget(month: String,currentBudget:Int,dismiss: (Boolean) ->Unit){
                     Text(text = "Cancel")
                 }
                 Button(onClick = {
-                    updateBudget(_budget.toInt(),currentBudget,month)
+                    updateBudget(_budget.toFloat(),currentBudget,month)
                     dismiss(true)
                 }) {
                     Text(text = "Ok")
@@ -205,7 +208,7 @@ fun monthSelector(_year: Int, _month:String,dismiss: (bool:Boolean,year:Int,mont
 //function to edit list item
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun editListItem(itemID:Int,currentItemName:String,currentItemAmount: Int,
+fun editListItem(itemID:Int,currentItemName:String,currentItemAmount: Float,
                 onDismissRequest: (Boolean) -> Unit,
 ){
     var _itemName by remember { mutableStateOf("$currentItemName") }
@@ -233,8 +236,9 @@ fun editListItem(itemID:Int,currentItemName:String,currentItemAmount: Int,
                     Text(text = "Cancel")
                 }
                 Button(onClick = {
-                    updateItemData(itemID,_itemName,currentItemName,_itemAmount.toInt(),currentItemAmount)
-                    onDismissRequest(false)
+                    if(_itemName.isNotEmpty() && _itemAmount.isNotEmpty()){
+                    updateItemData(itemID,_itemName,currentItemName,_itemAmount.toFloat(),currentItemAmount)
+                    onDismissRequest(false)}
                 }) {
                     Text(text = "Ok")
                 }
