@@ -110,7 +110,7 @@ class MainActivity : ComponentActivity() {
                 }
                 //edit budget dialog visibility declared her
                 if (showEdit_Budget.value){
-                    editBudget(expense_month.value,budget.value){
+                    editBudget(expense_month.value,expense_year.value.toString(),budget.value){
                         if (it){
                             showEdit_Budget.value=false
                         }
@@ -165,21 +165,7 @@ class MainActivity : ComponentActivity() {
 
     }
 
-//    //function that will create an activity
-//    //Here launch an activity to select or create sheet for selected month and year
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    fun createIntentAcivity(): Intent {
-//        //create the intent activity
-//        val intent = Intent(this,AnotherActivity::class.java)
-//        intent.putExtra("year",expense_year.value)
-//        intent.putExtra("month",expense_month.value)
-//        startActivity(intent)
-//        //return intent to the caller
-//        return  intent
-//    }
-//    var flagActivity = mutableStateOf(false)
-//    var activity_return = mutableStateOf("no data returned yet")
-//Intent activity for selecting month and year
+
 @RequiresApi(Build.VERSION_CODES.O)
 fun createIntentThirdActivity():Intent {
     var intent:Intent = Intent(this,ThirdActivity::class.java)
@@ -188,9 +174,9 @@ fun createIntentThirdActivity():Intent {
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    var third_year = mutableStateOf(LocalDate.now().year.toString())//Used for returned year from ThirdActivity
+    var third_year = mutableStateOf(LocalDate.now().year.toString())//Used for returned year from AnotherActivity
     @RequiresApi(Build.VERSION_CODES.O)
-    var third_month = mutableStateOf(LocalDate.now().month.toString())//Used for returned month from ThirdActivity
+    var third_month = mutableStateOf(LocalDate.now().month.toString())//Used for returned month from AnotherActivity
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -259,14 +245,14 @@ fun createIntentThirdActivity():Intent {
     sdb.update(table, row, where, where_args)
 }
 //function that will update budget in database for selected month
-fun updateBudget(newBudget:Float,oldBudget:Float,month:String) {
+fun updateBudget(newBudget:Float,oldBudget:Float,month:String,year: String) {
     val row: ContentValues = ContentValues().apply {
         put("BUDGET", newBudget.toString())
     }
     //generate a query to pick out the rows with month
     var table: String = "test"
-    var where: String = "MONTH = ?"
-    var where_args:Array<String> = arrayOf(month)
+    var where: String = "MONTH = ? AND YEAR =?"
+    var where_args:Array<String> = arrayOf(month,year)
     sdb.update(table, row, where, where_args)
 }
 

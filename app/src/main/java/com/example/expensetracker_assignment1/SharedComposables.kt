@@ -36,7 +36,7 @@ import java.time.Month
 import java.time.ZoneOffset
 import java.util.Calendar
 
-
+//This function is used to display the vertical scrollable list in the main interface.
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
@@ -133,7 +133,7 @@ fun addListItem(expense_year:Int,expense_month:String,expense_day:Int,budget:Flo
 
 //Function for edit Budjet
 @Composable
-fun editBudget(month: String,currentBudget:Float,dismiss: (Boolean) ->Unit){
+fun editBudget(month: String,year: String,currentBudget:Float,dismiss: (Boolean) ->Unit){
     var _budget by remember { mutableStateOf("${currentBudget}") }
 
     Dialog(onDismissRequest = { dismiss(true) }) {
@@ -148,7 +148,7 @@ fun editBudget(month: String,currentBudget:Float,dismiss: (Boolean) ->Unit){
                     Text(text = "Cancel")
                 }
                 Button(onClick = {
-                    updateBudget(_budget.toFloat(),currentBudget,month)
+                    updateBudget(_budget.toFloat(),currentBudget,month,year)
                     dismiss(true)
                 }) {
                     Text(text = "Ok")
