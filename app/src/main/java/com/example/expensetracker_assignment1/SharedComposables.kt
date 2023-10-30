@@ -133,10 +133,10 @@ fun addListItem(expense_year:Int,expense_month:String,expense_day:Int,budget:Flo
 
 //Function for edit Budjet
 @Composable
-fun editBudget(month: String,year: String,currentBudget:Float,dismiss: (Boolean) ->Unit){
+fun editBudget(month: String,year: String,currentBudget:Float,dismiss: (Boolean,String) ->Unit){
     var _budget by remember { mutableStateOf("${currentBudget}") }
 
-    Dialog(onDismissRequest = { dismiss(true) }) {
+    Dialog(onDismissRequest = { dismiss(true,_budget) }) {
         Column {
             Row {
                 TextField(value = _budget, onValueChange = { _budget = it },
@@ -144,12 +144,12 @@ fun editBudget(month: String,year: String,currentBudget:Float,dismiss: (Boolean)
                     label = { Text(text = "Enter Budget")})
             }
             Row {
-                Button(onClick = { dismiss(true) }) {
+                Button(onClick = { dismiss(true,_budget) }) {
                     Text(text = "Cancel")
                 }
                 Button(onClick = {
                     updateBudget(_budget.toFloat(),currentBudget,month,year)
-                    dismiss(true)
+                    dismiss(true,_budget)
                 }) {
                     Text(text = "Ok")
                 }

@@ -28,6 +28,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,6 +61,7 @@ class MainActivity : ComponentActivity() {
         sdb = tdb.writableDatabase
         setContent {
             var launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){
+                //Getting data from AnotherActivity.
                 third_year.value=it.data?.getStringExtra("year").toString()
                 third_month.value=it.data?.getStringExtra("month").toString()
                 expense_year.value=third_year.value.toInt()
@@ -87,12 +90,12 @@ class MainActivity : ComponentActivity() {
                         .background(Color.LightGray),
                     Arrangement.SpaceEvenly
 
-                ){
+                ){//Column to display total expense of selected month
                     Column( verticalArrangement = Arrangement.SpaceEvenly) {
                         Text("\u20AC ${String.format("%.2f",total_expense.value)}", modifier = Modifier,Color.Red,textAlign = TextAlign.Center)
                         Text("Total Expense",textAlign = TextAlign.Center)
                     }
-
+                            //Column to display balance amount for the selected month.
                     Column (verticalArrangement = Arrangement.SpaceEvenly){
                         Text("\u20AC ${String.format("%.2f",balance.value)}", modifier = Modifier, Color.Blue,textAlign = TextAlign.Center)
                         Text("Balance", modifier = Modifier, textAlign = TextAlign.Center)
@@ -110,10 +113,11 @@ class MainActivity : ComponentActivity() {
                 }
                 //edit budget dialog visibility declared her
                 if (showEdit_Budget.value){
-                    editBudget(expense_month.value,expense_year.value.toString(),budget.value){
-                        if (it){
+                    editBudget(expense_month.value,expense_year.value.toString(),budget.value){a,b->
+                        if (a){
                             showEdit_Budget.value=false
                         }
+                        secondary_budget.value=b.toFloat()
                     }
                 }
                 //Add expense button is declared here
@@ -121,8 +125,8 @@ class MainActivity : ComponentActivity() {
 
                     FloatingActionButton(onClick = {  showAdd_list.value = true},
                         Modifier
-                            .align(End)
-                            .padding(end = 20.dp, top = 10.dp)) {
+                            .align(CenterHorizontally)
+                            ) {
                         Icon(Icons.Filled.Add,contentDescription = "Add Expense", tint = Color.Red) }
 
                 //composable functions cannot be called from within onClicks from either a button or a modifier.
@@ -133,7 +137,8 @@ class MainActivity : ComponentActivity() {
                             showAdd_list.value = false}
                     }
                 }
-                arraylist = retrieveData()
+                arraylist = retrieveData() //retrieving data from database
+                //Displaying vertical list of expenses of selected month
                 if(arraylist.isNotEmpty()){
                 verticalList(items = arraylist,expense_month.value,expense_year.value,onItemClick = {item ->
                     selectedListItem.value=item
@@ -143,6 +148,9 @@ class MainActivity : ComponentActivity() {
                     a,b,c->
                     total_expense.value = a
                     budget.value= b
+                    if(c){
+                        budget.value = secondary_budget.value
+                    }
                     balance.value=budget.value - total_expense.value
                     listempty.value=c
                 } }
@@ -156,6 +164,7 @@ class MainActivity : ComponentActivity() {
                 //Checking list is empty or not.
                 if (listempty.value){
                     Text(text = "No expense in this month. Press + button to add new expense")
+
                 }
             }
 
@@ -194,6 +203,7 @@ fun createIntentThirdActivity():Intent {
     //floating point variable used to store total expense of selected month
     var balance = mutableStateOf(0f)
     //floating point variable used to store balance amount of selected month
+    var secondary_budget = mutableStateOf(0f)// used to set budget if the list is empty. Value accepts from function editBudget().
 
     // Initialize a mutable state variable with a default instance of ListItems
     var initialListItems = ListItems()
