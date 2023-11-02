@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import java.time.LocalDate
@@ -70,7 +72,8 @@ fun verticalList(items: List<ListItems>,month: String,year: Int, onItemClick: (L
                             trailingContent = {
                                 Row {
                                     Text(text = "\u20AC")
-                                    Text(text = i.amount?.toString() ?: "No Amount")
+                                    Text(text = i.amount?.toString() ?: "No Amount",
+                                        fontSize = 20.sp)
                                 }
 
                             }

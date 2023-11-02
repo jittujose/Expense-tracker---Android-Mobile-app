@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 
 
@@ -92,12 +93,12 @@ class MainActivity : ComponentActivity() {
 
                 ){//Column to display total expense of selected month
                     Column( verticalArrangement = Arrangement.SpaceEvenly) {
-                        Text("\u20AC ${String.format("%.2f",total_expense.value)}", modifier = Modifier,Color.Red,textAlign = TextAlign.Center)
+                        Text("\u20AC ${String.format("%.2f",total_expense.value)}", modifier = Modifier,Color.Red,textAlign = TextAlign.Center, fontSize = 20.sp)
                         Text("Total Expense",textAlign = TextAlign.Center)
                     }
                             //Column to display balance amount for the selected month.
                     Column (verticalArrangement = Arrangement.SpaceEvenly){
-                        Text("\u20AC ${String.format("%.2f",balance.value)}", modifier = Modifier, Color.Blue,textAlign = TextAlign.Center)
+                        Text("\u20AC ${String.format("%.2f",balance.value)}", modifier = Modifier, Color.Blue,textAlign = TextAlign.Center, fontSize = 20.sp)
                         Text("Balance", modifier = Modifier, textAlign = TextAlign.Center)
                     }
                 }
@@ -266,7 +267,7 @@ fun updateBudget(newBudget:Float,oldBudget:Float,month:String,year: String) {
     sdb.update(table, row, where, where_args)
 }
 
-//function to delete row from database table test
+//function to delete row from database table test based on ID
 fun deleteItemByID(itemId: Int) {
 
 
@@ -274,6 +275,20 @@ fun deleteItemByID(itemId: Int) {
     val table = "test"
     val whereClause = "ID = ?"
     val whereArgs = arrayOf(itemId.toString())
+
+    // Execute the DELETE statement
+    sdb.delete(table, whereClause, whereArgs)
+
+
+}
+//function to delete row from database table test based on month and year
+fun deleteItemByMonthYear(month: String,year: Int) {
+
+
+    // Define the table and the condition for deletion
+    val table = "test"
+    val whereClause = "MONTH = ? AND YEAR = ?"
+    val whereArgs = arrayOf(month,year.toString())
 
     // Execute the DELETE statement
     sdb.delete(table, whereClause, whereArgs)
